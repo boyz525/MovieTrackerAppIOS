@@ -20,7 +20,6 @@ final class FavoritesManager {
 
     private init() { load() }
 
-    // MARK: - Toggle
 
     func toggle(_ movie: Movie) {
         if movieIDs.contains(movie.id) {
@@ -56,8 +55,6 @@ final class FavoritesManager {
     }
 
     var isEmpty: Bool { movies.isEmpty && shows.isEmpty && people.isEmpty }
-
-    // MARK: - Persistence
 
     private func save() {
         let enc = JSONEncoder()

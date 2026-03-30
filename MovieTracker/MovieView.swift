@@ -5,7 +5,6 @@
 
 import SwiftUI
 
-// MARK: - Movies List
 
 struct MoviesListView: View {
     @State private var viewModel = MoviesViewModel()
@@ -62,7 +61,6 @@ struct MoviesListView: View {
     }
 }
 
-// MARK: - Movie Card
 
 struct MovieCard: View {
     let movie: Movie
@@ -104,7 +102,7 @@ struct MovieCard: View {
     }
 }
 
-// MARK: - Movie Detail (iOS 26 / Apple Music style)
+
 
 struct MovieDetailView: View {
     let movie: Movie
@@ -116,28 +114,22 @@ struct MovieDetailView: View {
 
     var body: some View {
         ZStack {
-            // 1. Сильно заблюренный постер — фон на весь экран
             DetailBlurBackground(url: posterURL)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea()
 
-            // 2. Скроллируемый контент
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
 
-                    // 3. Зеркальное отражение постера сверху
                     DetailReflection(url: posterURL)
 
-                    // 4. Постер — смещён вниз, заходит на отражение
                     DetailPosterCard(url: posterURL)
                         .padding(.top, -50)
                         .frame(maxWidth: .infinity)
                         .padding(.bottom, 8)
 
-                    // 5. Блюр-переход между постером и контентом
                     DetailBlurTransition()
 
-                    // 6. Текстовый контент
                     VStack(spacing: 20) {
                         Text(movie.title)
                             .font(.title2.bold())
@@ -172,7 +164,6 @@ struct MovieDetailView: View {
             }
             .ignoresSafeArea(edges: .top)
         }
-        // Навбар всегда прозрачный — не становится непрозрачным при скролле
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)

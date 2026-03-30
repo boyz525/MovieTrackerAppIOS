@@ -55,7 +55,6 @@ struct PeopleListView: View {
     }
 }
 
-// MARK: - Person Card
 
 struct PersonCard: View {
     let person: Person
@@ -99,7 +98,6 @@ struct PersonCard: View {
     }
 }
 
-// MARK: - Person Detail (iOS 26 / Apple Music style)
 
 struct PersonDetailView: View {
     let person: Person

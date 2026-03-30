@@ -26,7 +26,6 @@ struct FavoritesView: View {
         }
     }
 
-    // MARK: - Empty State
 
     private var emptyState: some View {
         VStack(spacing: 16) {
@@ -44,7 +43,6 @@ struct FavoritesView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    // MARK: - Favorites List
 
     private var favoritesList: some View {
         ScrollView(showsIndicators: false) {
@@ -111,7 +109,6 @@ struct FavoritesView: View {
     }
 }
 
-// MARK: - Section Header
 
 private struct FavSection<Content: View>: View {
     let title: String
@@ -127,8 +124,6 @@ private struct FavSection<Content: View>: View {
         }
     }
 }
-
-// MARK: - Small Cards
 
 private struct FavPosterCard: View {
     let title: String

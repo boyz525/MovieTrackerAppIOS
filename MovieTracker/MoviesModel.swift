@@ -5,7 +5,6 @@
 
 import Foundation
 
-// MARK: - Sort Option
 
 enum SortOption: String, CaseIterable, Identifiable {
     case popular, topRated, latest
@@ -45,7 +44,6 @@ enum SortOption: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - Movie
 
 struct Movie: Codable, Identifiable, Hashable {
     let id: Int
@@ -78,7 +76,6 @@ struct MoviesResponse: Codable {
     }
 }
 
-// MARK: - TV Show
 
 struct TVShow: Codable, Identifiable, Hashable {
     let id: Int
@@ -111,7 +108,6 @@ struct TVShowsResponse: Codable {
     }
 }
 
-// MARK: - Person
 
 struct Person: Codable, Identifiable, Hashable {
     let id: Int
@@ -156,7 +152,6 @@ struct PeopleResponse: Codable {
     }
 }
 
-// MARK: - Search
 
 struct SearchResult: Codable, Identifiable, Hashable {
     let id: Int
@@ -196,7 +191,6 @@ struct SearchResponse: Codable {
     }
 }
 
-// MARK: - Helpers
 
 extension String {
     func posterURL(size: String = "w500") -> URL? {

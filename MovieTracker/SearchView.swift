@@ -5,8 +5,6 @@
 
 import SwiftUI
 
-// MARK: - Search View (используется внутри Tab(role: .search))
-
 struct SearchView: View {
     @State private var viewModel = SearchViewModel()
 
@@ -26,13 +24,10 @@ struct SearchView: View {
             }
             .navigationTitle("Поиск")
             .navigationBarTitleDisplayMode(.large)
-            // navigationDestination объявляется здесь — внутри NavigationStack
             .navigationDestination(for: SearchResult.self) { result in
                 SearchResultDetailView(result: result)
             }
         }
-        // .searchable на NavigationStack — iOS автоматически активирует поле
-        // когда Tab(role: .search) нажат
         .searchable(
             text: $viewModel.query,
             placement: .navigationBarDrawer(displayMode: .always),
@@ -41,7 +36,7 @@ struct SearchView: View {
         .onChange(of: viewModel.query) { _, _ in viewModel.search() }
     }
 
-    // MARK: - States
+
 
     private var emptyPrompt: some View {
         VStack(spacing: 16) {
@@ -80,7 +75,6 @@ struct SearchView: View {
         ScrollView(showsIndicators: false) {
             LazyVStack(spacing: 8) {
                 ForEach(viewModel.results) { result in
-                    // NavigationLink делает каждый результат кликабельным
                     NavigationLink(value: result) {
                         SearchResultRow(result: result)
                     }
@@ -94,7 +88,7 @@ struct SearchView: View {
     }
 }
 
-// MARK: - Result Row
+
 
 struct SearchResultRow: View {
     let result: SearchResult
@@ -119,7 +113,6 @@ struct SearchResultRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            // Постер / фото
             AsyncImage(url: result.imagePath.flatMap { $0.posterURL() }) { image in
                 image.resizable().aspectRatio(contentMode: .fill)
             } placeholder: {
@@ -133,7 +126,6 @@ struct SearchResultRow: View {
             .frame(width: 58, height: 84)
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-            // Текст
             VStack(alignment: .leading, spacing: 6) {
                 Text(result.displayTitle)
                     .font(.subheadline.weight(.semibold))
@@ -179,7 +171,6 @@ struct SearchResultRow: View {
     }
 }
 
-// MARK: - Search Result Detail View (iOS 26 / Apple Music style)
 
 struct SearchResultDetailView: View {
     let result: SearchResult
@@ -246,7 +237,7 @@ struct SearchResultDetailView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 40)
                     .padding(.top, 24)
                     .padding(.bottom, 60)
                 }

@@ -5,8 +5,6 @@
 
 import SwiftUI
 
-// MARK: - TV Shows List
-
 struct TVShowsListView: View {
     @State private var viewModel = TVShowsViewModel()
     @Environment(FavoritesManager.self) private var favorites
@@ -62,7 +60,7 @@ struct TVShowsListView: View {
     }
 }
 
-// MARK: - TV Show Card
+
 
 struct TVShowCard: View {
     let show: TVShow
@@ -105,7 +103,7 @@ struct TVShowCard: View {
     }
 }
 
-// MARK: - TV Show Detail (iOS 26 / Apple Music style)
+
 
 struct TVShowDetailView: View {
     let show: TVShow

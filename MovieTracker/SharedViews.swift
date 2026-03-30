@@ -5,7 +5,7 @@
 
 import SwiftUI
 
-// MARK: - Favorite Button
+
 
 struct FavoriteButton: View {
     let isFavorite: Bool
@@ -22,7 +22,7 @@ struct FavoriteButton: View {
     }
 }
 
-// MARK: - Sort Menu
+
 
 struct SortMenuButton: View {
     let current: SortOption
@@ -49,7 +49,7 @@ struct SortMenuButton: View {
     }
 }
 
-// MARK: - List Overlays
+
 
 struct LoadingOverlay: View {
     var body: some View {
@@ -73,7 +73,7 @@ struct ErrorOverlay: View {
     }
 }
 
-// MARK: - Poster Image (для карточек в сетке)
+
 
 struct PosterImage: View {
     let path: String?
@@ -102,7 +102,7 @@ struct PosterImage: View {
     }
 }
 
-// MARK: - Meta Pills Row
+
 
 struct MetaPillsRow: View {
     let items: [(String, String)]
@@ -121,7 +121,6 @@ struct MetaPillsRow: View {
     }
 }
 
-// MARK: - Load More Spinner
 
 struct LoadMoreSpinner: View {
     var body: some View {
@@ -134,9 +133,7 @@ struct LoadMoreSpinner: View {
     }
 }
 
-// MARK: - Detail Screen Components (iOS 26 / Apple Music style)
 
-/// Сильно заблюренный постер на весь экран — фон детального экрана
 struct DetailBlurBackground: View {
     let url: URL?
 
@@ -146,7 +143,7 @@ struct DetailBlurBackground: View {
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .blur(radius: 70)
-                .scaleEffect(1.5) // scale up чтобы blur не давал белые края
+                .scaleEffect(1.5) 
                 .overlay(Color.black.opacity(0.42))
         } placeholder: {
             Color.black.opacity(0.8)
@@ -154,7 +151,7 @@ struct DetailBlurBackground: View {
     }
 }
 
-/// Зеркальное отражение постера сверху — перевёрнутый постер с фейдом
+
 struct DetailReflection: View {
     let url: URL?
 
@@ -163,7 +160,6 @@ struct DetailReflection: View {
             image
                 .resizable()
                 .aspectRatio(contentMode: .fill)
-                // Отражаем по вертикали
                 .scaleEffect(x: 1, y: -1, anchor: .center)
         } placeholder: {
             Color.clear
@@ -171,7 +167,6 @@ struct DetailReflection: View {
         .frame(maxWidth: .infinity)
         .frame(height: 220)
         .clipped()
-        // Маска: отражение видно сверху, плавно исчезает книзу
         .mask {
             LinearGradient(
                 stops: [
@@ -186,7 +181,7 @@ struct DetailReflection: View {
     }
 }
 
-/// Постер — карточка с тенью, центрированная
+
 struct DetailPosterCard: View {
     let url: URL?
 
@@ -200,12 +195,11 @@ struct DetailPosterCard: View {
         }
         .frame(maxWidth: 300)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        // Глубокая тень — постер «парит» над фоном
         .shadow(color: .black.opacity(0.65), radius: 36, x: 0, y: 18)
     }
 }
 
-/// Блюр-переход между постером и текстовым контентом
+
 struct DetailBlurTransition: View {
     var body: some View {
         Rectangle()
