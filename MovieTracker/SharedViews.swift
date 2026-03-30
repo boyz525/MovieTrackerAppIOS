@@ -15,7 +15,7 @@ struct FavoriteButton: View {
         Button(action: action) {
             Image(systemName: isFavorite ? "heart.fill" : "heart")
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(isFavorite ? .red : .primary)
+                .foregroundStyle(isFavorite ? .red : .white)
                 .frame(width: 32, height: 32)
         }
         .glassEffect(in: .circle)
@@ -49,7 +49,7 @@ struct SortMenuButton: View {
     }
 }
 
-// MARK: - Overlays
+// MARK: - List Overlays
 
 struct LoadingOverlay: View {
     var body: some View {
@@ -73,7 +73,7 @@ struct ErrorOverlay: View {
     }
 }
 
-// MARK: - Poster Image
+// MARK: - Poster Image (для карточек в сетке)
 
 struct PosterImage: View {
     let path: String?
@@ -102,35 +102,6 @@ struct PosterImage: View {
     }
 }
 
-// MARK: - Hero Image для push-экранов (без кнопки закрытия)
-
-struct PushDetailHeroImage: View {
-    let url: URL?
-
-    var body: some View {
-        AsyncImage(url: url) { image in
-            image.resizable().scaledToFit()
-        } placeholder: {
-            Rectangle()
-                .fill(Color.gray.opacity(0.25))
-                .aspectRatio(2/3, contentMode: .fit)
-        }
-        .frame(maxWidth: .infinity)
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .frame(height: 110)
-                .mask {
-                    LinearGradient(
-                        colors: [.clear, .black],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                }
-        }
-    }
-}
-
 // MARK: - Meta Pills Row
 
 struct MetaPillsRow: View {
@@ -146,7 +117,7 @@ struct MetaPillsRow: View {
             }
         }
         .font(.caption.weight(.medium))
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.white.opacity(0.85))
     }
 }
 
@@ -160,5 +131,92 @@ struct LoadMoreSpinner: View {
             Spacer()
         }
         .padding(.vertical, 16)
+    }
+}
+
+// MARK: - Detail Screen Components (iOS 26 / Apple Music style)
+
+/// Сильно заблюренный постер на весь экран — фон детального экрана
+struct DetailBlurBackground: View {
+    let url: URL?
+
+    var body: some View {
+        AsyncImage(url: url) { image in
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .blur(radius: 70)
+                .scaleEffect(1.5) // scale up чтобы blur не давал белые края
+                .overlay(Color.black.opacity(0.42))
+        } placeholder: {
+            Color.black.opacity(0.8)
+        }
+    }
+}
+
+/// Зеркальное отражение постера сверху — перевёрнутый постер с фейдом
+struct DetailReflection: View {
+    let url: URL?
+
+    var body: some View {
+        AsyncImage(url: url) { image in
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                // Отражаем по вертикали
+                .scaleEffect(x: 1, y: -1, anchor: .center)
+        } placeholder: {
+            Color.clear
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 220)
+        .clipped()
+        // Маска: отражение видно сверху, плавно исчезает книзу
+        .mask {
+            LinearGradient(
+                stops: [
+                    .init(color: .black.opacity(0.55), location: 0),
+                    .init(color: .black.opacity(0.15), location: 0.55),
+                    .init(color: .clear, location: 1.0)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        }
+    }
+}
+
+/// Постер — карточка с тенью, центрированная
+struct DetailPosterCard: View {
+    let url: URL?
+
+    var body: some View {
+        AsyncImage(url: url) { image in
+            image.resizable().scaledToFit()
+        } placeholder: {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color.gray.opacity(0.35))
+                .aspectRatio(2/3, contentMode: .fit)
+        }
+        .frame(maxWidth: 300)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        // Глубокая тень — постер «парит» над фоном
+        .shadow(color: .black.opacity(0.65), radius: 36, x: 0, y: 18)
+    }
+}
+
+/// Блюр-переход между постером и текстовым контентом
+struct DetailBlurTransition: View {
+    var body: some View {
+        Rectangle()
+            .fill(.ultraThinMaterial)
+            .frame(height: 80)
+            .mask {
+                LinearGradient(
+                    colors: [.clear, .black],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
     }
 }

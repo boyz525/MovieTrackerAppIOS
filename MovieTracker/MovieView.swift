@@ -22,7 +22,6 @@ struct MoviesListView: View {
                 ScrollView(showsIndicators: false) {
                     LazyVGrid(columns: columns, spacing: 16) {
                         ForEach(viewModel.movies) { movie in
-                            // NavigationLink даёт push-навигацию вместо шторки
                             NavigationLink(value: movie) {
                                 MovieCard(movie: movie, favorites: favorites)
                             }
@@ -42,7 +41,7 @@ struct MoviesListView: View {
                     .padding(.bottom, 100)
                 }
 
-                if viewModel.isLoading         { LoadingOverlay() }
+                if viewModel.isLoading              { LoadingOverlay() }
                 else if let e = viewModel.errorMessage { ErrorOverlay(message: e) }
             }
             .navigationTitle("Фильмы")
@@ -55,9 +54,7 @@ struct MoviesListView: View {
                     }
                 }
             }
-            // При смене сортировки перезагружаем
             .task(id: viewModel.sortOption) { await viewModel.load() }
-            // Открывает MovieDetailView как push-экран
             .navigationDestination(for: Movie.self) { movie in
                 MovieDetailView(movie: movie)
             }
@@ -107,52 +104,78 @@ struct MovieCard: View {
     }
 }
 
-// MARK: - Movie Detail (push-экран, не шторка)
+// MARK: - Movie Detail (iOS 26 / Apple Music style)
 
 struct MovieDetailView: View {
     let movie: Movie
     @Environment(FavoritesManager.self) private var favorites
 
-    private var heroURL: URL? {
-        (movie.backdropPath ?? movie.posterPath)?.posterURL(size: "w1280")
+    private var posterURL: URL? {
+        movie.posterPath?.posterURL(size: "w780")
     }
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
-                PushDetailHeroImage(url: heroURL)
+        ZStack {
+            // 1. Сильно заблюренный постер — фон на весь экран
+            DetailBlurBackground(url: posterURL)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
 
-                VStack(alignment: .leading, spacing: 20) {
-                    Text(movie.title)
-                        .font(.title2.bold())
-                        .fixedSize(horizontal: false, vertical: true)
+            // 2. Скроллируемый контент
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
 
-                    MetaPillsRow(items: [
-                        (String(format: "%.1f", movie.voteAverage), "star.fill"),
-                        (movie.releaseDate.formattedDate(), "calendar"),
-                        ("\(movie.voteCount)", "person.2.fill")
-                    ])
+                    // 3. Зеркальное отражение постера сверху
+                    DetailReflection(url: posterURL)
 
-                    if let overview = movie.overview, !overview.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Описание").font(.headline)
-                            Text(overview)
-                                .font(.body)
-                                .foregroundStyle(.secondary)
-                                .lineSpacing(5)
+                    // 4. Постер — смещён вниз, заходит на отражение
+                    DetailPosterCard(url: posterURL)
+                        .padding(.top, -50)
+                        .frame(maxWidth: .infinity)
+                        .padding(.bottom, 8)
+
+                    // 5. Блюр-переход между постером и контентом
+                    DetailBlurTransition()
+
+                    // 6. Текстовый контент
+                    VStack(spacing: 20) {
+                        Text(movie.title)
+                            .font(.title2.bold())
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+
+                        MetaPillsRow(items: [
+                            (String(format: "%.1f", movie.voteAverage), "star.fill"),
+                            (movie.releaseDate.formattedDate(), "calendar"),
+                            ("\(movie.voteCount)", "person.2.fill")
+                        ])
+                        .frame(maxWidth: .infinity)
+
+                        if let overview = movie.overview, !overview.isEmpty {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("Описание")
+                                    .font(.headline)
+                                    .foregroundStyle(.white)
+                                Text(overview)
+                                    .font(.body)
+                                    .foregroundStyle(.white.opacity(0.75))
+                                    .lineSpacing(5)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
+                    .padding(.horizontal, 40)
+                    .padding(.top, 24)
+                    .padding(.bottom, 60)
                 }
-                .padding(20)
-                .padding(.bottom, 48)
             }
+            .ignoresSafeArea(edges: .top)
         }
-        // Картинка уходит под навбар — получаем эффект full-bleed
-        .ignoresSafeArea(edges: .top)
-        .navigationTitle(movie.title)
+        // Навбар всегда прозрачный — не становится непрозрачным при скролле
         .navigationBarTitleDisplayMode(.inline)
-        // Полупрозрачный навбар над изображением
-        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 FavoriteButton(isFavorite: favorites.movieIDs.contains(movie.id)) {

@@ -99,83 +99,87 @@ struct PersonCard: View {
     }
 }
 
-// MARK: - Person Detail (push-экран)
+// MARK: - Person Detail (iOS 26 / Apple Music style)
 
 struct PersonDetailView: View {
     let person: Person
     @Environment(FavoritesManager.self) private var favorites
 
+    private var photoURL: URL? {
+        person.profilePath?.posterURL(size: "w780")
+    }
+
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-                // Фото — полный экран, под навбар
-                AsyncImage(url: person.profilePath.flatMap { $0.posterURL(size: "w780") }) { image in
-                    image.resizable().scaledToFit()
-                } placeholder: {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.2))
-                        .aspectRatio(2/3, contentMode: .fit)
-                }
-                .frame(maxWidth: .infinity)
-                .overlay(alignment: .bottom) {
-                    Rectangle()
-                        .fill(.ultraThinMaterial)
-                        .frame(height: 110)
-                        .mask {
-                            LinearGradient(
-                                colors: [.clear, .black],
-                                startPoint: .top, endPoint: .bottom
-                            )
-                        }
-                }
+        ZStack {
+            DetailBlurBackground(url: photoURL)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
 
-                VStack(alignment: .leading, spacing: 20) {
-                    Text(person.name)
-                        .font(.title2.bold())
-                        .fixedSize(horizontal: false, vertical: true)
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    DetailReflection(url: photoURL)
 
-                    MetaPillsRow(items: [
-                        (person.knownForDepartment ?? "Актёр", "theatermasks.fill"),
-                        (String(format: "%.0f", person.popularity), "chart.line.uptrend.xyaxis")
-                    ])
+                    DetailPosterCard(url: photoURL)
+                        .padding(.top, -50)
+                        .frame(maxWidth: .infinity)
+                        .padding(.bottom, 8)
 
-                    // Известен по
-                    if let knownFor = person.knownFor, !knownFor.isEmpty {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Известен по").font(.headline)
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 12) {
-                                    ForEach(knownFor) { media in
-                                        VStack(spacing: 6) {
-                                            AsyncImage(url: media.posterPath.flatMap { $0.posterURL() }) { img in
-                                                img.resizable().aspectRatio(contentMode: .fill)
-                                            } placeholder: {
-                                                Rectangle().fill(Color.gray.opacity(0.2))
+                    DetailBlurTransition()
+
+                    VStack(spacing: 20) {
+                        Text(person.name)
+                            .font(.title2.bold())
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+
+                        MetaPillsRow(items: [
+                            (person.knownForDepartment ?? "Актёр", "theatermasks.fill"),
+                            (String(format: "%.0f", person.popularity), "chart.line.uptrend.xyaxis")
+                        ])
+                        .frame(maxWidth: .infinity)
+
+                        if let knownFor = person.knownFor, !knownFor.isEmpty {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Известен по")
+                                    .font(.headline)
+                                    .foregroundStyle(.white)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 12) {
+                                        ForEach(knownFor) { media in
+                                            VStack(spacing: 6) {
+                                                AsyncImage(url: media.posterPath.flatMap { $0.posterURL() }) { img in
+                                                    img.resizable().aspectRatio(contentMode: .fill)
+                                                } placeholder: {
+                                                    Rectangle().fill(Color.gray.opacity(0.2))
+                                                }
+                                                .frame(width: 80, height: 120)
+                                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+                                                Text(media.displayTitle)
+                                                    .font(.caption2)
+                                                    .foregroundStyle(.white.opacity(0.75))
+                                                    .lineLimit(2)
+                                                    .multilineTextAlignment(.center)
+                                                    .frame(width: 80)
                                             }
-                                            .frame(width: 80, height: 120)
-                                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-
-                                            Text(media.displayTitle)
-                                                .font(.caption2)
-                                                .lineLimit(2)
-                                                .multilineTextAlignment(.center)
-                                                .frame(width: 80)
                                         }
                                     }
                                 }
                             }
                         }
                     }
+                    .padding(.horizontal, 40)
+                    .padding(.top, 24)
+                    .padding(.bottom, 60)
                 }
-                .padding(20)
-                .padding(.bottom, 48)
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .ignoresSafeArea(edges: .top)
         }
-        .ignoresSafeArea(edges: .top)
-        .navigationTitle(person.name)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 FavoriteButton(isFavorite: favorites.personIDs.contains(person.id)) {

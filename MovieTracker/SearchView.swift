@@ -179,7 +179,7 @@ struct SearchResultRow: View {
     }
 }
 
-// MARK: - Search Result Detail View
+// MARK: - Search Result Detail View (iOS 26 / Apple Music style)
 
 struct SearchResultDetailView: View {
     let result: SearchResult
@@ -194,69 +194,67 @@ struct SearchResultDetailView: View {
     }
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
+        ZStack {
+            DetailBlurBackground(url: heroURL)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
 
-                // Hero
-                AsyncImage(url: heroURL) { image in
-                    image.resizable().scaledToFit()
-                } placeholder: {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.25))
-                        .aspectRatio(2/3, contentMode: .fit)
-                }
-                .frame(maxWidth: .infinity)
-                .overlay(alignment: .bottom) {
-                    Rectangle()
-                        .fill(.ultraThinMaterial)
-                        .frame(height: 110)
-                        .mask {
-                            LinearGradient(
-                                colors: [.clear, .black],
-                                startPoint: .top, endPoint: .bottom
-                            )
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    DetailReflection(url: heroURL)
+
+                    DetailPosterCard(url: heroURL)
+                        .padding(.top, -50)
+                        .frame(maxWidth: .infinity)
+                        .padding(.bottom, 8)
+
+                    DetailBlurTransition()
+
+                    VStack(spacing: 20) {
+                        Text(result.displayTitle)
+                            .font(.title2.bold())
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+
+                        HStack(spacing: 10) {
+                            if let rating = result.voteAverage, rating > 0 {
+                                Label(String(format: "%.1f", rating), systemImage: "star.fill")
+                                    .padding(.horizontal, 14).padding(.vertical, 8)
+                                    .glassEffect(in: Capsule())
+                            }
+                            if !formattedDate.isEmpty {
+                                Label(formattedDate, systemImage: "calendar")
+                                    .padding(.horizontal, 14).padding(.vertical, 8)
+                                    .glassEffect(in: Capsule())
+                            }
                         }
-                }
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .frame(maxWidth: .infinity)
 
-                // Content
-                VStack(alignment: .leading, spacing: 20) {
-                    Text(result.displayTitle)
-                        .font(.title2.bold())
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    // Мета-таблетки
-                    HStack(spacing: 10) {
-                        if let rating = result.voteAverage, rating > 0 {
-                            Label(String(format: "%.1f", rating), systemImage: "star.fill")
-                                .padding(.horizontal, 14).padding(.vertical, 8)
-                                .glassEffect(in: Capsule())
-                        }
-                        if !formattedDate.isEmpty {
-                            Label(formattedDate, systemImage: "calendar")
-                                .padding(.horizontal, 14).padding(.vertical, 8)
-                                .glassEffect(in: Capsule())
-                        }
-                    }
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.secondary)
-
-                    if let overview = result.overview, !overview.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Описание").font(.headline)
-                            Text(overview)
-                                .font(.body)
-                                .foregroundStyle(.secondary)
-                                .lineSpacing(5)
+                        if let overview = result.overview, !overview.isEmpty {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("Описание")
+                                    .font(.headline)
+                                    .foregroundStyle(.white)
+                                Text(overview)
+                                    .font(.body)
+                                    .foregroundStyle(.white.opacity(0.75))
+                                    .lineSpacing(5)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 24)
+                    .padding(.bottom, 60)
                 }
-                .padding(20)
-                .padding(.bottom, 48)
             }
+            .ignoresSafeArea(edges: .top)
         }
-        .ignoresSafeArea(edges: .top)
-        .navigationTitle(result.displayTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
     }
 }

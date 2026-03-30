@@ -41,7 +41,7 @@ struct TVShowsListView: View {
                     .padding(.bottom, 100)
                 }
 
-                if viewModel.isLoading         { LoadingOverlay() }
+                if viewModel.isLoading              { LoadingOverlay() }
                 else if let e = viewModel.errorMessage { ErrorOverlay(message: e) }
             }
             .navigationTitle("Сериалы")
@@ -105,50 +105,70 @@ struct TVShowCard: View {
     }
 }
 
-// MARK: - TV Show Detail (push-экран)
+// MARK: - TV Show Detail (iOS 26 / Apple Music style)
 
 struct TVShowDetailView: View {
     let show: TVShow
     @Environment(FavoritesManager.self) private var favorites
 
-    private var heroURL: URL? {
-        (show.backdropPath ?? show.posterPath)?.posterURL(size: "w1280")
+    private var posterURL: URL? {
+        show.posterPath?.posterURL(size: "w780")
     }
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
-                PushDetailHeroImage(url: heroURL)
+        ZStack {
+            DetailBlurBackground(url: posterURL)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
 
-                VStack(alignment: .leading, spacing: 20) {
-                    Text(show.name)
-                        .font(.title2.bold())
-                        .fixedSize(horizontal: false, vertical: true)
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    DetailReflection(url: posterURL)
 
-                    MetaPillsRow(items: [
-                        (String(format: "%.1f", show.voteAverage), "star.fill"),
-                        (show.firstAirDate?.formattedDate() ?? "—", "calendar"),
-                        ("\(show.voteCount)", "person.2.fill")
-                    ])
+                    DetailPosterCard(url: posterURL)
+                        .padding(.top, -50)
+                        .frame(maxWidth: .infinity)
+                        .padding(.bottom, 8)
 
-                    if let overview = show.overview, !overview.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Описание").font(.headline)
-                            Text(overview)
-                                .font(.body)
-                                .foregroundStyle(.secondary)
-                                .lineSpacing(5)
+                    DetailBlurTransition()
+
+                    VStack(spacing: 20) {
+                        Text(show.name)
+                            .font(.title2.bold())
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+
+                        MetaPillsRow(items: [
+                            (String(format: "%.1f", show.voteAverage), "star.fill"),
+                            (show.firstAirDate?.formattedDate() ?? "—", "calendar"),
+                            ("\(show.voteCount)", "person.2.fill")
+                        ])
+                        .frame(maxWidth: .infinity)
+
+                        if let overview = show.overview, !overview.isEmpty {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("Описание")
+                                    .font(.headline)
+                                    .foregroundStyle(.white)
+                                Text(overview)
+                                    .font(.body)
+                                    .foregroundStyle(.white.opacity(0.75))
+                                    .lineSpacing(5)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
+                    .padding(.horizontal, 40)
+                    .padding(.top, 24)
+                    .padding(.bottom, 60)
                 }
-                .padding(20)
-                .padding(.bottom, 48)
             }
+            .ignoresSafeArea(edges: .top)
         }
-        .ignoresSafeArea(edges: .top)
-        .navigationTitle(show.name)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 FavoriteButton(isFavorite: favorites.showIDs.contains(show.id)) {

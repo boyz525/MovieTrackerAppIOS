@@ -6,7 +6,7 @@
 import Foundation
 
 struct APIService {
-    private let apiKey  = "7fbadd600c1ea27fcda53de8d5da6048"
+    private let apiKey  = "Your_Token_Here"
     private let baseURL = "https://api.themoviedb.org/3"
     private var lang: String { "language=ru-RU&api_key=\(apiKey)" }
 
