@@ -1,5 +1,5 @@
 //
-//  MoviesViewModel.swift
+//  PeopleViewModel.swift
 //  MovieTracker
 //
 
@@ -7,12 +7,11 @@ import Foundation
 
 @Observable
 @MainActor
-class MoviesViewModel {
-    var movies:        [Movie]  = []
+class PeopleViewModel {
+    var people:        [Person] = []
     var isLoading:     Bool     = false
     var isLoadingMore: Bool     = false
     var errorMessage:  String?  = nil
-    var sortOption:    SortOption = .popular
 
     private var currentPage = 1
     private var totalPages  = 1
@@ -22,14 +21,14 @@ class MoviesViewModel {
 
     func load() async {
         currentPage  = 1
-        movies       = []
+        people       = []
         isLoading    = true
         errorMessage = nil
         defer { isLoading = false }
         do {
-            let r   = try await service.fetchMovies(sort: sortOption, page: 1)
-            movies  = r.results
-            totalPages  = r.totalPages
+            let r  = try await service.fetchPeople(page: 1)
+            people = r.results
+            totalPages = r.totalPages
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -40,8 +39,8 @@ class MoviesViewModel {
         isLoadingMore = true
         defer { isLoadingMore = false }
         do {
-            let r = try await service.fetchMovies(sort: sortOption, page: currentPage + 1)
-            movies.append(contentsOf: r.results)
+            let r = try await service.fetchPeople(page: currentPage + 1)
+            people.append(contentsOf: r.results)
             currentPage += 1
         } catch {}
     }

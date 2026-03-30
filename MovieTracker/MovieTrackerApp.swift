@@ -2,8 +2,6 @@
 //  MovieTrackerApp.swift
 //  MovieTracker
 //
-//  Created by Александр Малахов on 30.03.2026.
-//
 
 import SwiftUI
 
@@ -11,7 +9,8 @@ import SwiftUI
 struct MovieTrackerApp: App {
     var body: some Scene {
         WindowGroup {
-            MoviesListView()
+            MainTabView()
+                .environment(FavoritesManager.shared)
         }
     }
 }

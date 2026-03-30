@@ -1,14 +1,14 @@
 //
-//  MovieView.swift
+//  TVShowView.swift
 //  MovieTracker
 //
 
 import SwiftUI
 
-// MARK: - Movies List
+// MARK: - TV Shows List
 
-struct MoviesListView: View {
-    @State private var viewModel = MoviesViewModel()
+struct TVShowsListView: View {
+    @State private var viewModel = TVShowsViewModel()
     @Environment(FavoritesManager.self) private var favorites
 
     private let columns = [
@@ -21,14 +21,13 @@ struct MoviesListView: View {
             ZStack(alignment: .center) {
                 ScrollView(showsIndicators: false) {
                     LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(viewModel.movies) { movie in
-                            // NavigationLink даёт push-навигацию вместо шторки
-                            NavigationLink(value: movie) {
-                                MovieCard(movie: movie, favorites: favorites)
+                        ForEach(viewModel.shows) { show in
+                            NavigationLink(value: show) {
+                                TVShowCard(show: show, favorites: favorites)
                             }
                             .buttonStyle(.plain)
                             .onAppear {
-                                if movie.id == viewModel.movies.last?.id {
+                                if show.id == viewModel.shows.last?.id {
                                     Task { await viewModel.loadMore() }
                                 }
                             }
@@ -45,7 +44,7 @@ struct MoviesListView: View {
                 if viewModel.isLoading         { LoadingOverlay() }
                 else if let e = viewModel.errorMessage { ErrorOverlay(message: e) }
             }
-            .navigationTitle("Фильмы")
+            .navigationTitle("Сериалы")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -55,39 +54,38 @@ struct MoviesListView: View {
                     }
                 }
             }
-            // При смене сортировки перезагружаем
             .task(id: viewModel.sortOption) { await viewModel.load() }
-            // Открывает MovieDetailView как push-экран
-            .navigationDestination(for: Movie.self) { movie in
-                MovieDetailView(movie: movie)
+            .navigationDestination(for: TVShow.self) { show in
+                TVShowDetailView(show: show)
             }
         }
     }
 }
 
-// MARK: - Movie Card
+// MARK: - TV Show Card
 
-struct MovieCard: View {
-    let movie: Movie
+struct TVShowCard: View {
+    let show: TVShow
     let favorites: FavoritesManager
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            PosterImage(path: movie.posterPath, height: 200)
+            PosterImage(path: show.posterPath, height: 200)
 
             VStack(alignment: .leading, spacing: 5) {
-                Text(movie.title)
+                Text(show.name)
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(2)
                     .foregroundStyle(.primary)
 
                 HStack(spacing: 5) {
                     Image(systemName: "star.fill").font(.caption2).foregroundStyle(.yellow)
-                    Text(String(format: "%.1f", movie.voteAverage))
+                    Text(String(format: "%.1f", show.voteAverage))
                         .font(.caption2).foregroundStyle(.secondary)
-                    Text("·").font(.caption2).foregroundStyle(.tertiary)
-                    Text(movie.releaseDate.releaseYear)
-                        .font(.caption2).foregroundStyle(.secondary)
+                    if let year = show.firstAirDate?.releaseYear, !year.isEmpty {
+                        Text("·").font(.caption2).foregroundStyle(.tertiary)
+                        Text(year).font(.caption2).foregroundStyle(.secondary)
+                    }
                 }
             }
             .padding(.horizontal, 10)
@@ -99,22 +97,22 @@ struct MovieCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(alignment: .topTrailing) {
-            FavoriteButton(isFavorite: favorites.movieIDs.contains(movie.id)) {
-                favorites.toggle(movie)
+            FavoriteButton(isFavorite: favorites.showIDs.contains(show.id)) {
+                favorites.toggle(show)
             }
             .padding(8)
         }
     }
 }
 
-// MARK: - Movie Detail (push-экран, не шторка)
+// MARK: - TV Show Detail (push-экран)
 
-struct MovieDetailView: View {
-    let movie: Movie
+struct TVShowDetailView: View {
+    let show: TVShow
     @Environment(FavoritesManager.self) private var favorites
 
     private var heroURL: URL? {
-        (movie.backdropPath ?? movie.posterPath)?.posterURL(size: "w1280")
+        (show.backdropPath ?? show.posterPath)?.posterURL(size: "w1280")
     }
 
     var body: some View {
@@ -123,17 +121,17 @@ struct MovieDetailView: View {
                 PushDetailHeroImage(url: heroURL)
 
                 VStack(alignment: .leading, spacing: 20) {
-                    Text(movie.title)
+                    Text(show.name)
                         .font(.title2.bold())
                         .fixedSize(horizontal: false, vertical: true)
 
                     MetaPillsRow(items: [
-                        (String(format: "%.1f", movie.voteAverage), "star.fill"),
-                        (movie.releaseDate.formattedDate(), "calendar"),
-                        ("\(movie.voteCount)", "person.2.fill")
+                        (String(format: "%.1f", show.voteAverage), "star.fill"),
+                        (show.firstAirDate?.formattedDate() ?? "—", "calendar"),
+                        ("\(show.voteCount)", "person.2.fill")
                     ])
 
-                    if let overview = movie.overview, !overview.isEmpty {
+                    if let overview = show.overview, !overview.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Описание").font(.headline)
                             Text(overview)
@@ -147,16 +145,14 @@ struct MovieDetailView: View {
                 .padding(.bottom, 48)
             }
         }
-        // Картинка уходит под навбар — получаем эффект full-bleed
         .ignoresSafeArea(edges: .top)
-        .navigationTitle(movie.title)
+        .navigationTitle(show.name)
         .navigationBarTitleDisplayMode(.inline)
-        // Полупрозрачный навбар над изображением
         .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                FavoriteButton(isFavorite: favorites.movieIDs.contains(movie.id)) {
-                    favorites.toggle(movie)
+                FavoriteButton(isFavorite: favorites.showIDs.contains(show.id)) {
+                    favorites.toggle(show)
                 }
             }
         }
